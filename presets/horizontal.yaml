@@ -1,0 +1,44 @@
+name: "横書き標準"
+description: "横書き・縦向きの一般的な脚本フォーマット"
+
+page:
+  orientation: portrait        # 縦向き
+  text_direction: horizontal   # 横書き
+  size: A4
+
+font:
+  name: "MS Gothic"
+  size: 12
+
+paragraph:
+  indent_before_mm: 0
+  indent_after_mm: 0
+  space_before_pt: 0
+  space_after_pt: 0
+
+header_footer:
+  page_number: true
+  page_number_position: center_bottom
+  page_number_font_size: 10
+
+togaki:
+  indent_tabs: 2
+  auto_detect: true
+  exclude_patterns:
+    - { type: contains, value: "「" }
+    - { type: regex, value: "^[０-９]" }
+    - { type: starts_with, value: "Ｔ「" }
+    - { type: starts_with, value: "T「" }
+    - { type: starts_with, value: "Ｎ「" }
+    - { type: starts_with, value: "N「" }
+    - { type: starts_with, value: "※" }
+    - { type: starts_with, value: "×" }
+    - { type: starts_with, value: "　　" }
+    - { type: exact, value: "＜了＞" }
+    - { type: starts_with, value: "脚本" }
+    - { type: starts_with, value: "〈" }
+    - { type: starts_with, value: "＜" }
+
+meta:
+  writer_label: "脚本"
+  writer_position: after_title

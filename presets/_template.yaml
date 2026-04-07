@@ -1,0 +1,79 @@
+# =============================================
+# カスタムプリセット テンプレート
+# =============================================
+# このファイルをコピーして、案件名などで名前を付けて保存してください。
+# 例: my_project.yaml
+#
+# Web UIの「設定をプリセットとして保存」ボタンからも作成できます。
+# =============================================
+
+name: "プリセット名を入力"
+description: "このプリセットの説明を入力"
+
+# ページ設定
+# orientation: landscape（横向き）/ portrait（縦向き）
+# text_direction: vertical（縦書き）/ horizontal（横書き）
+# size: A4 / B5 / Letter
+page:
+  orientation: landscape
+  text_direction: vertical
+  size: A4
+
+# フォント設定
+font:
+  name: "MS Gothic"
+  size: 12
+
+# インデント・間隔
+# indent_before_mm: 前（右/上）インデント（mm単位）
+# indent_after_mm: 後（左/下）インデント（mm単位）
+# space_before_pt: 段落前の間隔（pt単位）
+# space_after_pt: 段落後の間隔（pt単位）
+paragraph:
+  indent_before_mm: 6
+  indent_after_mm: 0
+  space_before_pt: 0
+  space_after_pt: 0
+
+# ページ番号設定
+# page_number_position: right_bottom / center_bottom / right_top
+header_footer:
+  page_number: true
+  page_number_position: right_bottom
+  page_number_font_size: 10
+
+# ト書き設定
+# indent_tabs: ト書き行に自動付与するTABの数
+# auto_detect: true にすると、除外パターン以外の行をト書きと判定
+# exclude_patterns: ト書きではない行のパターンを定義
+#   type の種類:
+#     - contains: 指定文字列を含む行
+#     - starts_with: 指定文字列で始まる行
+#     - exact: 完全一致する行
+#     - regex: 正規表現にマッチする行
+#     - char_name: 登場人物紹介行（名前（年齢）形式、max_paren_posで括弧位置を指定）
+togaki:
+  indent_tabs: 2
+  auto_detect: true
+  exclude_patterns:
+    - { type: contains, value: "「" }
+    - { type: regex, value: "^[０-９]" }
+    - { type: starts_with, value: "Ｔ「" }
+    - { type: starts_with, value: "Ｎ「" }
+    - { type: starts_with, value: "※" }
+    - { type: starts_with, value: "×" }
+    - { type: starts_with, value: "　　" }
+    - { type: exact, value: "＜了＞" }
+    - { type: starts_with, value: "脚本" }
+    - { type: starts_with, value: "〈" }
+    - { type: starts_with, value: "＜" }
+    # ↓ 案件固有のパターンをここに追加してください
+    # - { type: starts_with, value: "作品タイトル" }
+    # - { type: contains, value: "特定キーワード" }
+
+# メタ情報
+# writer_label: タイトル下に表示する表記（例: 脚本、作、原案）
+# writer_position: after_title（タイトルの次の行）/ header（ヘッダー）/ none（非表示）
+meta:
+  writer_label: "脚本"
+  writer_position: after_title

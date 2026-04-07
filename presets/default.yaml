@@ -1,0 +1,49 @@
+name: "QPSS標準"
+description: "QPSSスキル準拠の標準脚本フォーマット（縦書き・横向き）"
+
+page:
+  orientation: landscape       # landscape / portrait
+  text_direction: vertical     # vertical / horizontal
+  size: A4                     # A4 / B5 / Letter
+
+font:
+  name: "MS Gothic"
+  size: 12                     # pt
+
+paragraph:
+  indent_before_mm: 6          # 前インデント(mm)
+  indent_after_mm: 0           # 後インデント(mm)
+  space_before_pt: 0           # 段落前間隔(pt)
+  space_after_pt: 0            # 段落後間隔(pt)
+
+header_footer:
+  page_number: true
+  page_number_position: right_bottom  # right_bottom / center_bottom / right_top
+  page_number_font_size: 10
+
+togaki:
+  indent_tabs: 2               # TABインデント数
+  auto_detect: true            # 自動判定の有効/無効
+  exclude_patterns:
+    # 汎用ルール
+    - { type: contains, value: "「" }           # セリフ行
+    - { type: regex, value: "^[０-９]" }        # 柱行（全角数字始まり）
+    - { type: starts_with, value: "Ｔ「" }      # テロップ
+    - { type: starts_with, value: "T「" }       # テロップ（半角）
+    - { type: starts_with, value: "Ｎ「" }      # ナレーション
+    - { type: starts_with, value: "N「" }       # ナレーション（半角）
+    - { type: starts_with, value: "※" }         # 注釈
+    - { type: starts_with, value: "×" }         # 場面転換
+    - { type: starts_with, value: "　　" }      # セリフ続き行（全角スペース2つ以上）
+    - { type: exact, value: "＜了＞" }          # 終了記号
+    - { type: starts_with, value: "脚本" }      # 脚本表記行
+    - { type: starts_with, value: "〈" }        # 登場人物ブロック
+    - { type: starts_with, value: "＜" }        # 登場人物ブロック
+    # 案件固有パターン（案件に応じて追加・変更してください）
+    - { type: starts_with, value: "三洋企業" }  # タイトル行（例）
+    - { type: contains, value: "企業ロゴ" }     # ロゴ表示
+    - { type: char_name, max_paren_pos: 6 }     # 登場人物紹介行（名前（年齢）形式）
+
+meta:
+  writer_label: "脚本"         # 「脚本：〇〇」の表記
+  writer_position: after_title # after_title / header / none
