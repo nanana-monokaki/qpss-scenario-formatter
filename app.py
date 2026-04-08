@@ -1,22 +1,51 @@
 """
-QPSS 脚本フォーマッタ - Web UI (Streamlit Cloud版)
+QPSS 脚本フォーマッタ - Web UI (Streamlit)
 非エンジニア向けのシンプルなブラウザ操作画面。
 """
 
+import json
 import os
 import sys
 from pathlib import Path
 
 import streamlit as st
 import yaml
+from streamlit_local_storage import LocalStorage
+
+# スクリプトのあるディレクトリを基準にパスを解決
+SCRIPT_DIR = Path(__file__).parent
+sys.path.insert(0, str(SCRIPT_DIR))
 
 from format_scenario import (
     ScenarioFormatter,
     extract_text,
     list_presets,
     load_preset,
+    save_preset,
     PRESETS_DIR,
 )
+
+# --- ブラウザ localStorage ---
+local_storage = LocalStorage()
+_STORAGE_KEY = "qpss_user_presets"
+
+
+def _load_user_presets():
+    """ブラウザ localStorage からユーザープリセットを読み込む"""
+    raw = local_storage.getItem(_STORAGE_KEY)
+    if raw and isinstance(raw, dict):
+        return raw
+    if raw and isinstance(raw, str):
+        try:
+            return json.loads(raw)
+        except (json.JSONDecodeError, TypeError):
+            return {}
+    return {}
+
+
+def _save_user_presets(presets_dict):
+    """ユーザープリセットを localStorage に保存する"""
+    local_storage.setItem(_STORAGE_KEY, presets_dict)
 
 # --- ページ設定 ---
 st.set_page_config(
@@ -31,13 +60,29 @@ st.caption("脚本ファイルをアップロードして、フォーマット�
 st.divider()
 
 # --- プリセット読み込み ---
-presets = list_presets()
-preset_names = [p["name"] for p in presets]
-preset_files = [p["file"] for p in presets]
+builtin_presets = list_presets()
+user_presets = _load_user_presets()
 
-if not presets:
+if not builtin_presets and not user_presets:
     st.error("プリセットが見つかりません。presets/ フォルダにYAMLファイルを配置してください。")
     st.stop()
+
+# 統合プリセットリスト: (表示名, 種別, キー)
+preset_options = []
+for p in builtin_presets:
+    preset_options.append({
+        "label": f"{p['name']} - {p['description']}",
+        "kind": "builtin",
+        "key": p["file"],
+        "name": p["name"],
+    })
+for name in user_presets:
+    preset_options.append({
+        "label": f"{name}（マイプリセット）",
+        "kind": "user",
+        "key": name,
+        "name": name,
+    })
 
 # --- メイン入力エリア ---
 st.subheader("脚本ファイルをアップロード")
@@ -61,14 +106,23 @@ st.divider()
 
 # --- プリセット選択 ---
 st.subheader("フォーマット設定")
+
+if not preset_options:
+    st.error("利用可能なプリセットがありません。")
+    st.stop()
+
 selected_idx = st.selectbox(
     "プリセットを選択",
-    range(len(presets)),
-    format_func=lambda i: f"{preset_names[i]} - {presets[i]['description']}",
+    range(len(preset_options)),
+    format_func=lambda i: preset_options[i]["label"],
 )
 
 # 選択中のプリセットを読み込み
-current_preset = load_preset(preset_files[selected_idx].replace(".yaml", ""))
+selected_option = preset_options[selected_idx]
+if selected_option["kind"] == "builtin":
+    current_preset = load_preset(selected_option["key"].replace(".yaml", ""))
+else:
+    current_preset = user_presets[selected_option["key"]].copy()
 
 # --- 詳細設定（折りたたみ） ---
 with st.expander("詳細設定（クリックで展開）"):
@@ -258,30 +312,38 @@ with st.expander("詳細設定（クリックで展開）"):
             "writer_position": writer_position,
         }
 
-    # --- プリセットYAMLダウンロード ---
+    # --- マイプリセット保存 ---
     st.divider()
-    st.markdown("**現在の設定をYAMLとしてダウンロード**")
-    st.caption("ダウンロードしたYAMLファイルを管理者に渡すと、プリセットとして追加できます。")
-    preset_yaml = yaml.dump(current_preset, allow_unicode=True, default_flow_style=False, sort_keys=False)
-    col_name, col_dl = st.columns([3, 1])
+    st.markdown("**現在の設定をマイプリセットとして保存**")
+    st.caption("ブラウザに保存されます。他のユーザーには表示されません。")
+    col_name, col_save = st.columns([3, 1])
     with col_name:
         save_name = st.text_input(
             "プリセット名",
             placeholder="例: 案件A用",
             label_visibility="collapsed",
         )
-    with col_dl:
-        dl_filename = (save_name.replace(" ", "_").replace("　", "_") + ".yaml") if save_name else "custom_preset.yaml"
-        if save_name:
-            current_preset["name"] = save_name
-            current_preset["description"] = f"カスタムプリセット: {save_name}"
-            preset_yaml = yaml.dump(current_preset, allow_unicode=True, default_flow_style=False, sort_keys=False)
-        st.download_button(
-            "保存",
-            data=preset_yaml,
-            file_name=dl_filename,
-            mime="application/x-yaml",
-        )
+    with col_save:
+        if st.button("保存", type="secondary"):
+            if save_name:
+                current_preset["name"] = save_name
+                current_preset["description"] = f"マイプリセット: {save_name}"
+                up = _load_user_presets()
+                up[save_name] = current_preset
+                _save_user_presets(up)
+                st.success(f"マイプリセット「{save_name}」を保存しました")
+                st.rerun()
+            else:
+                st.warning("プリセット名を入力してください")
+
+    # --- マイプリセット削除 ---
+    if selected_option["kind"] == "user":
+        if st.button("このマイプリセットを削除", type="secondary"):
+            up = _load_user_presets()
+            up.pop(selected_option["key"], None)
+            _save_user_presets(up)
+            st.success(f"マイプリセット「{selected_option['name']}」を削除しました")
+            st.rerun()
 
 st.divider()
 
