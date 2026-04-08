@@ -332,7 +332,10 @@ class ScenarioFormatter:
             if line_type == "togaki":
                 line = "\t" * togaki_tabs + line
 
-            doc.add_paragraph(line)
+            p = doc.add_paragraph()
+            run = p.add_run(line)
+            if line_type in ("title", "meta"):
+                run.bold = True
 
         # --- 保存 ---
         if output_path:
