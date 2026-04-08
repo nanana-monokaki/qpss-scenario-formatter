@@ -345,6 +345,52 @@ with st.expander("詳細設定（クリックで展開）"):
             st.success(f"マイプリセット「{selected_option['name']}」を削除しました")
             st.rerun()
 
+    # --- マイプリセット エクスポート / インポート ---
+    st.divider()
+    st.markdown("**マイプリセットのバックアップ**")
+    st.caption("キャッシュクリアや別端末への移行に備えて、ファイルで保存・復元できます。")
+
+    col_export, col_import = st.columns(2)
+
+    with col_export:
+        up_current = _load_user_presets()
+        if up_current:
+            export_yaml = yaml.dump(up_current, allow_unicode=True, default_flow_style=False)
+            st.download_button(
+                label="エクスポート（YAML）",
+                data=export_yaml.encode("utf-8"),
+                file_name="my_presets.yaml",
+                mime="application/x-yaml",
+                use_container_width=True,
+            )
+        else:
+            st.info("保存済みのマイプリセットがありません")
+
+    with col_import:
+        import_file = st.file_uploader(
+            "インポート（YAML）",
+            type=["yaml", "yml"],
+            key="preset_import",
+            label_visibility="collapsed",
+        )
+        if import_file is not None:
+            try:
+                imported = yaml.safe_load(import_file.read().decode("utf-8"))
+                if not isinstance(imported, dict):
+                    st.error("無効なファイル形式です")
+                else:
+                    up_merged = _load_user_presets()
+                    count = 0
+                    for name, preset in imported.items():
+                        if isinstance(preset, dict):
+                            up_merged[name] = preset
+                            count += 1
+                    _save_user_presets(up_merged)
+                    st.success(f"{count} 件のマイプリセットをインポートしました")
+                    st.rerun()
+            except Exception as e:
+                st.error(f"インポートに失敗しました: {e}")
+
 st.divider()
 
 # --- 変換・ダウンロード ---
