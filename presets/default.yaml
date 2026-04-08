@@ -1,5 +1,5 @@
-name: "QPSS標準"
-description: "QPSSスキル準拠の標準脚本フォーマット（縦書き・横向き）"
+name: "QPSSフォーマッタ標準"
+description: "QPSS向きの標準脚本フォーマット（縦書き・横向き）"
 
 page:
   orientation: landscape       # landscape / portrait
