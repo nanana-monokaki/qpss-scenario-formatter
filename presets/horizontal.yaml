@@ -39,6 +39,10 @@ togaki:
     - { type: starts_with, value: "〈" }
     - { type: starts_with, value: "＜" }
 
+line_spacing:
+  between_dialogue: 0
+  between_togaki_and_dialogue: 1
+
 meta:
   writer_label: "脚本"
   writer_position: after_title

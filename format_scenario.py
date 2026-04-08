@@ -22,7 +22,7 @@ PAGE_SIZES = {
     "Letter": (216, 279),
 }
 
-PRESETS_DIR = Path(__file__).parent / "presets"
+PRESETS_DIR = Path(__file__).parent.parent / "presets"
 
 
 def load_preset(preset_name_or_path):
@@ -282,22 +282,54 @@ class ScenarioFormatter:
         writer_label = meta_config.get("writer_label", "脚本")
         writer_position = meta_config.get("writer_position", "after_title")
 
+        # 行間設定
+        line_spacing = self.config.get("line_spacing", {})
+        blank_between_dialogue = line_spacing.get("between_dialogue", 0)
+        blank_between_togaki_dialogue = line_spacing.get("between_togaki_and_dialogue", 1)
+
         lines = text.split("\n")
         title_done = False
 
+        # 空行を除去してコンテンツ行のみ抽出し、行間を再構成する
+        content_lines = []
         for line in lines:
             # 執筆者名の挿入（タイトル直後）
             if not title_done and line.strip() and writer_name and writer_position == "after_title":
-                doc.add_paragraph(line)
-                doc.add_paragraph(f"{writer_label}：{writer_name}")
+                content_lines.append(("title", line))
+                content_lines.append(("meta", f"{writer_label}：{writer_name}"))
                 title_done = True
                 continue
 
             if not title_done and line.strip():
                 title_done = True
 
-            # ト書き判定 → TABインデント付与
-            if self.is_togaki(line):
+            if not line.strip():
+                continue
+
+            is_tog = self.is_togaki(line)
+            if is_tog:
+                content_lines.append(("togaki", line))
+            else:
+                content_lines.append(("dialogue", line))
+
+        # コンテンツ行を出力し、行種の変化に応じて空行を挿入
+        for idx, (line_type, line) in enumerate(content_lines):
+            # 前の行との間に空行を挿入
+            if idx > 0:
+                prev_type = content_lines[idx - 1][0]
+                blanks = 0
+                if prev_type in ("title", "meta"):
+                    blanks = 0
+                elif line_type == "dialogue" and prev_type == "dialogue":
+                    blanks = blank_between_dialogue
+                else:
+                    # ト書き⇔セリフ、ト書き⇔ト書き の切り替わり
+                    blanks = blank_between_togaki_dialogue
+                for _ in range(blanks):
+                    doc.add_paragraph("")
+
+            # ト書き → TABインデント付与
+            if line_type == "togaki":
                 line = "\t" * togaki_tabs + line
 
             doc.add_paragraph(line)

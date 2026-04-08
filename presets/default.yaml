@@ -44,6 +44,10 @@ togaki:
     # - { type: contains, value: "ロゴ表示" }         # ロゴ表示（例）
     - { type: char_name, max_paren_pos: 6 }     # 登場人物紹介行（名前（年齢）形式）
 
+line_spacing:
+  between_dialogue: 0          # セリフとセリフの間の空行数
+  between_togaki_and_dialogue: 1  # ト書きとセリフの間の空行数
+
 meta:
   writer_label: "脚本"         # 「脚本：〇〇」の表記
   writer_position: after_title # after_title / header / none

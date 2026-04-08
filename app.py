@@ -128,7 +128,7 @@ else:
 with st.expander("詳細設定（クリックで展開）"):
     st.caption("プリセットの設定を個別に変更できます。変更はこの実行のみ有効です。")
 
-    tab1, tab2, tab3 = st.tabs(["ページ・フォント", "ト書き判定", "メタ情報"])
+    tab1, tab2, tab_ls, tab3 = st.tabs(["ページ・フォント", "ト書き判定", "行間設定", "メタ情報"])
 
     with tab1:
         col_a, col_b = st.columns(2)
@@ -290,6 +290,31 @@ with st.expander("詳細設定（クリックで展開）"):
             "indent_tabs": indent_tabs,
             "auto_detect": auto_detect,
             "exclude_patterns": patterns_to_keep,
+        }
+
+    with tab_ls:
+        st.caption("行種の切り替わり時に挿入する空行数を設定します。")
+        ls_config = current_preset.get("line_spacing", {})
+        col_ls1, col_ls2 = st.columns(2)
+        with col_ls1:
+            blank_between_dialogue = st.number_input(
+                "セリフ間の空行数",
+                value=ls_config.get("between_dialogue", 0),
+                min_value=0,
+                max_value=5,
+                help="セリフとセリフの間に挿入する空行の数",
+            )
+        with col_ls2:
+            blank_between_togaki = st.number_input(
+                "ト書き⇔セリフ間の空行数",
+                value=ls_config.get("between_togaki_and_dialogue", 1),
+                min_value=0,
+                max_value=5,
+                help="ト書きとセリフの切り替わりに挿入する空行の数",
+            )
+        current_preset["line_spacing"] = {
+            "between_dialogue": blank_between_dialogue,
+            "between_togaki_and_dialogue": blank_between_togaki,
         }
 
     with tab3:
