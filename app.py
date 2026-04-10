@@ -24,6 +24,8 @@ from format_scenario import (
     save_preset,
     PRESETS_DIR,
 )
+from analytics import log_event
+from admin_dashboard import check_admin_auth, render_dashboard
 
 # --- ブラウザ localStorage ---
 local_storage = LocalStorage()
@@ -56,6 +58,11 @@ st.set_page_config(
 
 st.title("📄 QPSS 脚本フォーマッタ")
 st.caption("脚本ファイルをアップロードして、フォーマット済みのWord文書を生成します")
+
+# ページビュー記録（1セッションにつき1回）
+if "page_view_logged" not in st.session_state:
+    log_event("page_view")
+    st.session_state.page_view_logged = True
 
 st.divider()
 
@@ -420,6 +427,11 @@ st.divider()
 
 # --- 変換・ダウンロード ---
 if uploaded_file is not None:
+    # ファイルアップロード記録
+    if "last_uploaded_file" not in st.session_state or st.session_state.last_uploaded_file != uploaded_file.name:
+        log_event("file_upload", file_format=Path(uploaded_file.name).suffix.lower())
+        st.session_state.last_uploaded_file = uploaded_file.name
+
     # テキスト抽出
     try:
         file_bytes = uploaded_file.read()
@@ -442,6 +454,11 @@ if uploaded_file is not None:
                 formatter = ScenarioFormatter(current_preset)
                 docx_bytes = formatter.create_docx(text, writer_name=writer_name)
 
+                log_event(
+                    "convert",
+                    preset_name=selected_option["name"],
+                    preset_kind=selected_option["kind"],
+                )
                 st.success("Word文書の生成が完了しました")
                 st.download_button(
                     label="ダウンロード",
@@ -455,3 +472,7 @@ if uploaded_file is not None:
                 st.exception(e)
 else:
     st.info("脚本ファイルをアップロードしてください")
+
+# --- 管理者ダッシュボード ---
+if check_admin_auth():
+    render_dashboard()

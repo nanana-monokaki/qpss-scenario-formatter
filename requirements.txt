@@ -4,3 +4,6 @@ python-docx
 pyyaml
 mammoth
 striprtf
+gspread
+google-auth
+pandas
