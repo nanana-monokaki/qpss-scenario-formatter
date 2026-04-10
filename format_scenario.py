@@ -22,7 +22,7 @@ PAGE_SIZES = {
     "Letter": (216, 279),
 }
 
-PRESETS_DIR = Path(__file__).parent.parent / "presets"
+PRESETS_DIR = Path(__file__).parent / "presets"
 
 
 def load_preset(preset_name_or_path):
