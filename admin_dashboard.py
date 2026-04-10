@@ -12,7 +12,11 @@ from analytics import fetch_all_logs
 
 
 def check_admin_auth() -> bool:
-    """サイドバーに管理者ログイン欄を常時表示し、認証状態を返す。"""
+    """URLパラメータ ?admin=1 がある場合のみサイドバーにログイン欄を表示する。"""
+    params = st.query_params
+    if params.get("admin") != "1" and not st.session_state.get("admin_authenticated"):
+        return False
+
     with st.sidebar:
         st.markdown("---")
         st.caption("管理者メニュー")
