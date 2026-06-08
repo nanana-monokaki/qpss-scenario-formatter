@@ -155,7 +155,12 @@ class ScenarioFormatter:
 
             if pat_type == "contains" and value in line:
                 return False
-            elif pat_type == "starts_with" and stripped.startswith(value):
+            elif pat_type == "starts_with" and (
+                line.startswith(value) or stripped.startswith(value)
+            ):
+                # 全角スペース等の空白で始まるパターン（セリフ続き行など）は
+                # line.strip() で先頭空白が除去されると一致しなくなるため、
+                # 元の行頭(line)でも判定する。
                 return False
             elif pat_type == "exact" and stripped == value:
                 return False
